@@ -89,17 +89,25 @@ def parse_special_event(user_input_text):
 
 
 def response_elicit_session(intent_name, slots, slot_to_elicit, message=None):
-    dialog_action = {
-        "type": "ElicitSlot",
-        "slotToElicit": slot_to_elicit,
-    }
-    if message:
-        dialog_action["message"] = {"contentType": "PlainText", "content": message}
     return {
         "sessionState": {
-            "dialogAction": dialog_action,
-            "intent": {"name": intent_name, "slots": slots, "state": "InProgress"},
-        }
+            "dialogAction": {
+                "type": "ElicitSlot",
+                "slotToElicit": slot_to_elicit,
+            },
+            "intent": {
+                "confirmationState": "None",
+                "name": intent_name,
+                "slots": slots,
+                "state": "InProgress",
+            },
+        },
+        "messages": [
+            {
+                "contentType": "PlainText",
+                "content": message,
+            }
+        ],
     }
 
 
@@ -146,7 +154,7 @@ def response_invalid_date_session(
     }
 
 
-def process_check_in_date(event):  # noqa: F811
+def process_check_in_date(event):
     session_state = event.get("sessionState", {})
     intent = session_state.get("intent", {})
     intent_name = intent.get("name", "")
@@ -207,9 +215,15 @@ def process_check_in_date(event):  # noqa: F811
                 return
         print("check_in_date_fixed", check_in_date)
 
-        response = response_elicit_session(intent_name, slots, "CheckInDate")
+        # 成功メッセージを設定
+        response = response_elicit_session(
+            intent_name,
+            slots,
+            "NumberOfNights",
+            "チェックイン日が正常に受理されました。何泊ご滞在されますか？",
+        )
+        return response
     else:
         return response_close_session(
             "Thank you for your information.", intent_name, slots
         )
-    return response

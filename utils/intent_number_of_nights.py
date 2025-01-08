@@ -93,4 +93,4 @@ def response_invalid_date_session(
 
 
 def process_number_of_nights(event):
-    print("there")
+    print("event", event)
