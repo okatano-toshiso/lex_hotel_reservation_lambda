@@ -14,35 +14,32 @@ client = OpenAI(
 
 
 def parse_relative_date(user_input_text):
+    print("parse_relative_date")
     """
-    Parses relative date expressions like 'tomorrow', 'day after tomorrow', 'next week', 'next month', 'next year', 'week after next', 'yesterday', 'last week', and 'last month' into actual dates.
+    Parses relative date expressions using OpenAI's GPT model.
     Args:
         user_input_text (str): The user input text.
     Returns:
         str: The parsed date in 'YYYY-MM-DD' format, or None if no relative date expression is found.
     """
-    today = datetime.today()
-    if user_input_text.lower() == "tomorrow":
-        return (today + timedelta(days=1)).strftime("%Y-%m-%d")
-    elif user_input_text.lower() == "day after tomorrow":
-        return (today + timedelta(days=2)).strftime("%Y-%m-%d")
-    elif user_input_text.lower() == "next week":
-        return (today + timedelta(weeks=1)).strftime("%Y-%m-%d")
-    elif user_input_text.lower() == "week after next":
-        return (today + timedelta(weeks=2)).strftime("%Y-%m-%d")
-    elif user_input_text.lower() == "next month":
-        next_month = today.replace(day=28) + timedelta(days=4)
-        return next_month.replace(day=1).strftime("%Y-%m-%d")
-    elif user_input_text.lower() == "next year":
-        return today.replace(year=today.year + 1).strftime("%Y-%m-%d")
-    elif user_input_text.lower() == "yesterday":
-        return (today - timedelta(days=1)).strftime("%Y-%m-%d")
-    elif user_input_text.lower() == "last week":
-        return (today - timedelta(weeks=1)).strftime("%Y-%m-%d")
-    elif user_input_text.lower() == "last month":
-        last_month = today.replace(day=1) - timedelta(days=1)
-        return last_month.replace(day=1).strftime("%Y-%m-%d")
-    return None
+    current_time = datetime.now().strftime("%Y-%m-%d")
+    system_content = "現在時刻{}を基準に、ユーザーのメッセージ「{}」が相対日付を取得するのに有効な日付だった場合、YYYY-MM-DDのDate形式でレスポンスする。有効ではないメッセージだった場合は、Noneを返す。レスポンスの形式はYYYY-MM-DDかNoneかどちらかです。".format(
+        current_time, user_input_text
+    )
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        temperature=0,
+        messages=[
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_input_text},
+        ],
+    )
+    result = response.choices[0].message.content
+    print("現在の基準値", result)
+    if result == "None":
+        return None
+    else:
+        return result
 
 
 def parse_date_without_year(check_in_date):
@@ -111,26 +108,34 @@ def response_elicit_session(intent_name, slots, slot_to_elicit, message=None):
     }
 
 
-def response_close_session(message, intent_name, slots):
+def response_close_session(message, intent_name, slots=None):
+    if slots is None:
+        slots = {}  # 空のスロットをデフォルト値として設定
     return {
         "sessionState": {
             "dialogAction": {
                 "type": "Close",
                 "fulfillmentState": "Fulfilled",
-                "message": {"contentType": "PlainText", "content": message},
             },
             "intent": {
                 "name": intent_name,
                 "slots": slots,
                 "state": "Fulfilled",
             },
-        }
+        },
+        "messages": [
+            {
+                "contentType": "PlainText",
+                "content": message,
+            }
+        ],
     }
 
 
 def response_invalid_date_session(
     intent_name, slots, invalid_attempts, slotToElicit, message
 ):
+    print("response_invalid_date_session")
     return {
         "sessionState": {
             "sessionAttributes": {"invalidAttempts": str(invalid_attempts)},
@@ -159,6 +164,7 @@ def process_check_in_date(event):
     intent = session_state.get("intent", {})
     intent_name = intent.get("name", "")
     slots = intent.get("slots", {})
+    print("slots", slots)
     user_input_text = event.get("inputTranscript", "")
 
     if event.get("invocationSource") == "DialogCodeHook":
@@ -171,11 +177,24 @@ def process_check_in_date(event):
                     check_in_date = check_in_date_value.get("interpretedValue", None)
 
         if not check_in_date and isinstance(user_input_text, str):
+            print("user_input_text", user_input_text)
             relative_date = parse_relative_date(user_input_text)
+            print("relative_date", relative_date)
+
             if relative_date:
-                check_in_date = relative_date
+                try:
+                    datetime.strptime(relative_date, "%Y-%m-%d")  # フォーマットを修正
+                    check_in_date = relative_date
+                except ValueError:
+                    return response_elicit_session(
+                        intent_name,
+                        slots,
+                        "CheckInDate",
+                        "Please provide a valid check-in date.",
+                    )
             else:
                 check_in_date = parse_special_event(user_input_text)
+                print("check_in_date", check_in_date)
                 if check_in_date:
                     try:
                         datetime.strptime(check_in_date, "%m-%d")
@@ -188,6 +207,7 @@ def process_check_in_date(event):
                             "Please provide a valid check-in date.",
                         )
                 else:
+                    print("invalid message")
                     session_attributes = event.get("sessionState", {}).get(
                         "sessionAttributes", {}
                     )
@@ -195,13 +215,20 @@ def process_check_in_date(event):
                         session_attributes.get("invalidAttempts", "0")
                     )
                     invalid_attempts += 1
+                    print("invalid_attempts", invalid_attempts)
                     if invalid_attempts >= 5:
+                        print("over five times")
+                        print("intent_name", intent_name)
+                        print("slots", slots)
                         return response_close_session(
                             "入力が繰り返し無効です。セッションを終了します。",
                             intent_name,
                             slots,
                         )
                     else:
+                        print("under five times")
+                        print("intent_name", intent_name)
+                        print("slots", slots)
                         return response_invalid_date_session(
                             intent_name,
                             slots,
@@ -212,14 +239,19 @@ def process_check_in_date(event):
             if check_in_date:
                 slots["CheckInDate"] = {"value": {"interpretedValue": check_in_date}}
             else:
-                return
+                return response_elicit_session(
+                    intent_name,
+                    slots,
+                    "CheckInDate",
+                    "Please provide a valid check-in date.",
+                )
         print("check_in_date_fixed", check_in_date)
 
         # 成功メッセージを設定
         response = response_elicit_session(
             intent_name,
             slots,
-            "NumberOfNights",
+            "CheckInDate",
             "チェックイン日が正常に受理されました。何泊ご滞在されますか？",
         )
         return response
