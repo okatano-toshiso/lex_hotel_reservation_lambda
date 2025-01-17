@@ -235,7 +235,7 @@ def is_valid_date_format(date_str, date_format="%Y-%m-%d"):
         return False
 
 
-def process_check_in_date(event):
+def process_check_out_date(event):
     session_state = event.get("sessionState", {})
     intent = session_state.get("intent", {})
     intent_name = intent.get("name", "")
@@ -288,7 +288,7 @@ def process_check_in_date(event):
                             intent_name,
                             slots,
                             "CheckInDate",
-                            "有効なチェックイン日を入力してください。",
+                            "Please provide a valid check-in date.",
                         )
                 elif check_in_date is None:
                     print("check_in_date_second", check_in_date)
@@ -328,7 +328,7 @@ def process_check_in_date(event):
         response = response_elicit_session(
             intent_name,
             slots,
-            "CheckOutDate",
+            "CheckInDate",
             f"チェックイン日 {check_in_date} を受けたまりました。チェックアウト日を教えてください",
         )
         return response
