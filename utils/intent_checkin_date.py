@@ -312,7 +312,7 @@ def process_check_in_date(event):
                             slots,
                             invalid_attempts,
                             "CheckInDate",
-                            "入力された値が無効です。正しい日付を入力してください。例: 2024-12-25",
+                            "入力された値が無効です。正しい日付を入力してください。例: 2025年12月25日など",
                         )
             if check_in_date:
                 slots["CheckInDate"] = {"value": {"interpretedValue": check_in_date}}
@@ -321,15 +321,19 @@ def process_check_in_date(event):
                     intent_name,
                     slots,
                     "CheckInDate",
-                    "入力された値が無効です。正しい日付を入力してください。例: 2024-12-25",
+                    "入力された値が無効です。正しい日付を入力してください。例: 2025年12月25日など",
                 )
         print("check_in_date_fixed", check_in_date)
+
+
+        if check_in_date:
+            check_in_date_value = datetime.strptime(check_in_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
 
         response = response_elicit_session(
             intent_name,
             slots,
             "CheckOutDate",
-            f"チェックイン日 {check_in_date} を受けたまりました。チェックアウト日を教えてください",
+            f"チェックイン日 {check_in_date_value} を受けたまりました。続きましてチェックアウト日を教えてください",
         )
         return response
     else:
