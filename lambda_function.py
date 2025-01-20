@@ -24,5 +24,5 @@ def lambda_handler(event, context):
         return check_in_date
 
     if invocation_label == "CheckOutDateSlot":
-        check_in_date = process_check_in_date(event)
+        check_in_date = process_check_out_date(event)
         return check_in_date

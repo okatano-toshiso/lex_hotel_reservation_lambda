@@ -110,7 +110,7 @@ def parse_relative_date(user_input_text):
         return result
 
 
-def parse_date_without_year(check_in_date):
+def parse_date_without_year(check_out_date):
     """
     Parses date expressions without a year into the closest future date.
     Args:
@@ -120,7 +120,7 @@ def parse_date_without_year(check_in_date):
     """
     today = datetime.today()
     try:
-        date_without_year = datetime.strptime(check_in_date, "%m-%d")
+        date_without_year = datetime.strptime(check_out_date, "%m-%d")
         date_with_current_year = date_without_year.replace(year=today.year)
         if date_with_current_year < today:
             date_with_current_year = date_with_current_year.replace(year=today.year + 1)
@@ -214,7 +214,7 @@ def response_invalid_date_session(
             "intent": {
                 "confirmationState": "Denied",
                 "name": intent_name,
-                "slots": {"CheckInDate": None},
+                "slots": {"CheckOutDate": None},
                 "state": "InProgress",
             },
         },
@@ -243,17 +243,17 @@ def process_check_out_date(event):
     user_input_text = event.get("inputTranscript", "")
 
     if event.get("invocationSource") == "DialogCodeHook":
-        check_in_date = None
+        check_out_date = None
         if slots:
             logger.info(f"slots: {slots}")
-            check_in_date_slot = slots.get("CheckInDate", {})
-            if check_in_date_slot:
-                check_in_date_value = check_in_date_slot.get("value", {})
-                if check_in_date_value:
-                    check_in_date = check_in_date_value.get("originalValue", None)
-        print("check_in_date_null", check_in_date)
+            check_out_date_slot = slots.get("CheckOutDate", {})
+            if check_out_date_slot:
+                check_out_date_value = check_out_date_slot.get("value", {})
+                if check_out_date_value:
+                    check_out_date = check_out_date_value.get("originalValue", None)
+        print("check_out_date_null", check_out_date)
         if (
-            not check_in_date or not is_valid_date_format(check_in_date)
+            not check_out_date or not is_valid_date_format(check_out_date)
         ) and isinstance(user_input_text, str):
             relative_date = parse_relative_date(user_input_text)
             print("relative_date_first", relative_date)
@@ -264,34 +264,34 @@ def process_check_out_date(event):
                     if datetime.strptime(relative_date, "%Y-%m-%d").replace(
                         tzinfo=JST
                     ) < datetime.now(JST):
-                        check_in_date = None
+                        check_out_date = None
                     else:
-                        check_in_date = relative_date
+                        check_out_date = relative_date
                 except ValueError:
                     return response_elicit_session(
                         intent_name,
                         slots,
-                        "CheckInDate",
+                        "CheckOutDate",
                         "有効なチェックイン日を入力してください。",
                     )
             elif relative_date is None:
                 print("relative_date_second", relative_date)
-                check_in_date = parse_special_event(user_input_text)
-                print("check_in_date_first", check_in_date)
-                if check_in_date is not None:
+                check_out_date = parse_special_event(user_input_text)
+                print("check_out_date_first", check_out_date)
+                if check_out_date is not None:
                     try:
-                        datetime.strptime(check_in_date, "%m-%d")
-                        check_in_date = parse_date_without_year(check_in_date)
+                        datetime.strptime(check_out_date, "%m-%d")
+                        check_out_date = parse_date_without_year(check_out_date)
 
                     except ValueError:
                         return response_elicit_session(
                             intent_name,
                             slots,
-                            "CheckInDate",
-                            "Please provide a valid check-in date.",
+                            "CheckOutDate",
+                            "Please provide a valid check-out date.",
                         )
-                elif check_in_date is None:
-                    print("check_in_date_second", check_in_date)
+                elif check_out_date is None:
+                    print("check_out_date_second", check_out_date)
                     session_attributes = event.get("sessionState", {}).get(
                         "sessionAttributes", {}
                     )
@@ -311,25 +311,28 @@ def process_check_out_date(event):
                             intent_name,
                             slots,
                             invalid_attempts,
-                            "CheckInDate",
+                            "CheckOutDate",
                             "入力された値が無効です。正しい日付を入力してください。例: 2024-12-25",
                         )
-            if check_in_date:
-                slots["CheckInDate"] = {"value": {"interpretedValue": check_in_date}}
+            if check_out_date:
+                slots["CheckOutDate"] = {"value": {"interpretedValue": check_out_date}}
             else:
                 return response_elicit_session(
                     intent_name,
                     slots,
-                    "CheckInDate",
+                    "CheckOutDate",
                     "入力された値が無効です。正しい日付を入力してください。例: 2024-12-25",
                 )
-        print("check_in_date_fixed", check_in_date)
+        print("check_out_date_fixed", check_out_date)
+
+        if check_out_date:
+            check_out_date_value = datetime.strptime(check_out_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
 
         response = response_elicit_session(
             intent_name,
             slots,
-            "CheckInDate",
-            f"チェックイン日 {check_in_date} を受けたまりました。チェックアウト日を教えてください",
+            "CheckOutDate",
+            f"チェックアウト日 {check_out_date_value} を受けたまりました。続きまして、利用者人数を教えてください",
         )
         return response
     else:
