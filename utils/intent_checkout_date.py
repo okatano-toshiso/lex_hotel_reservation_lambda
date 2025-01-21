@@ -331,7 +331,7 @@ def process_check_out_date(event):
         response = response_elicit_session(
             intent_name,
             slots,
-            "CheckOutDate",
+            "NumberOfGuests",
             f"チェックアウト日 {check_out_date_value} を受けたまりました。続きまして、利用者人数を教えてください",
         )
         return response

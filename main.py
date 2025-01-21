@@ -1,7 +1,7 @@
 import logging
 import json
 from utils.intent_checkin_date import process_check_in_date
-from utils.intent_number_of_nights import process_number_of_nights
+from utils.intent_number_of_guests import process_number_of_nights
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

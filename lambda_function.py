@@ -2,7 +2,7 @@ import logging
 import json
 from utils.intent_checkin_date import process_check_in_date
 from utils.intent_checkout_date import process_check_out_date
-from utils.intent_number_of_nights import process_number_of_nights
+from utils.intent_number_of_guests import process_number_of_guests
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -25,4 +25,8 @@ def lambda_handler(event, context):
 
     if invocation_label == "CheckOutDateSlot":
         check_in_date = process_check_out_date(event)
+        return check_in_date
+
+    if invocation_label == "NumberOfGuestsSlot":
+        check_in_date = process_number_of_guests(event)
         return check_in_date
