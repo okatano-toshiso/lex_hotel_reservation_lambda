@@ -123,18 +123,31 @@ def convert_guests_to_number(user_input_text):
         return result
 
 
-def response_elicit_session(intent_name, slots, slot_to_elicit, message=None):
+def response_elicit_session(
+        intent_name,
+        slots=None,
+        slot_to_elicit=None,
+        message=None,
+        state="InProgress",
+        type="ElicitSlot",
+        invalid_attempts="0"
+    ):
+    if slots is None:
+        slots = {}
     return {
         "sessionState": {
+            "sessionAttributes": {
+                "invalidAttempts": str(invalid_attempts)
+            },
             "dialogAction": {
-                "type": "ElicitSlot",
+                "type": type,
                 "slotToElicit": slot_to_elicit,
             },
             "intent": {
                 "confirmationState": "None",
                 "name": intent_name,
                 "slots": slots,
-                "state": "InProgress",
+                "state": state,
             },
         },
         "messages": [
@@ -164,10 +177,45 @@ def process_number_of_guests(event):
                 number_of_guests_value = number_of_guests_slot.get("value", {})
                 if number_of_guests_value:
                     number_of_guests = number_of_guests_value.get("originalValue", None)
+        if number_of_guests is None:
+            number_of_guests = user_input_text
         print("number_of_guests_null", number_of_guests)
-        if number_of_guests and not isinstance(number_of_guests, int):
+        print("number_of_guests type", type(number_of_guests))
+        if number_of_guests is not None and not isinstance(number_of_guests, int):
+            print("number_of_guestsがNoneでもなくint型ではない")
             try:
-                number_of_guests = int(convert_guests_to_number(user_input_text))
+                number_of_guests = convert_guests_to_number(user_input_text)
+                if number_of_guests == "None":
+                    number_of_guests = None
+                if number_of_guests is None:
+                    session_attributes = event.get("sessionState", {}).get(
+                        "sessionAttributes", {}
+                    )
+                    invalid_attempts = int(
+                        session_attributes.get("invalidAttempts", "0")
+                    )
+                    invalid_attempts += 1
+                    print("無効データ入力回数", invalid_attempts)
+                    if invalid_attempts >= 5:
+                        return response_elicit_session(
+                            intent_name,
+                            slots,
+                            "NumberOfGuests",
+                            "無効な入力が続いたため、予約の受付を終了します。",
+                            "Fulfilled",
+                            "Close",
+                            invalid_attempts
+                        )
+                    else:
+                        return response_elicit_session(
+                            intent_name,
+                            slots,
+                            "NumberOfGuests",
+                            "入力された値が無効です。正しい利用者人数を入力してください。例: 1,一人,2,二人",
+                            "InProgress",
+                            "ElicitSlot",
+                            invalid_attempts
+                        )
             except ValueError:
                 return response_elicit_session(
                     intent_name,
@@ -175,12 +223,12 @@ def process_number_of_guests(event):
                     "NumberOfGuests",
                     "有効な人数を入力してください",
                 )
-
+            number_of_guests = int(number_of_guests)
             if number_of_guests and isinstance(number_of_guests, int) and number_of_guests <= 9:
                 response = response_elicit_session(
                     intent_name,
                     slots,
-                    "NumberOfGuests",
+                    "RoomType",
                     f" {number_of_guests} 名様の利用者人数を受けたまりました。続きまして部屋タイプを教えてください",
                 )
                 return response
@@ -191,4 +239,12 @@ def process_number_of_guests(event):
                     "NumberOfGuests",
                     "有効な人数を入力してください",
                 )
+        else:
+            print("number_of_guestsがNoneかint型")
+            return response_elicit_session(
+                intent_name,
+                slots,
+                "NumberOfGuests",
+                "利用者人数を入力してください",
+            )
 

@@ -20,13 +20,14 @@ def lambda_handler(event, context):
         print("invocationLabelが設定されていません。")
 
     if invocation_label == "CheckInDateSlot":
-        check_in_date = process_check_in_date(event)
-        return check_in_date
+        result = process_check_in_date(event)
+        return result
 
     if invocation_label == "CheckOutDateSlot":
-        check_in_date = process_check_out_date(event)
-        return check_in_date
+        result = process_check_out_date(event)
+        return result
 
     if invocation_label == "NumberOfGuestsSlot":
-        check_in_date = process_number_of_guests(event)
-        return check_in_date
+        result = process_number_of_guests(event)
+        return result
+
