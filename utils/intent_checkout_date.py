@@ -30,19 +30,23 @@ def parse_relative_date(user_input_text):
     three_days_later = (current_time + timedelta(days=3)).strftime("%Y-%m-%d")
     next_week = (current_time + timedelta(weeks=1)).strftime("%Y-%m-%d")
     two_weeks_later = (current_time + timedelta(weeks=2)).strftime("%Y-%m-%d")
-    next_month = (
-        (current_time.replace(day=1) + timedelta(days=32))
-        .replace(day=current_day)
-        .strftime("%Y-%m-%d")
-    )
-    month_after_next = (
-        (current_time.replace(day=1) + timedelta(days=32 * 2))
-        .replace(day=current_day)
-        .strftime("%Y-%m-%d")
-    )
-    next_year = (current_time.replace(month=1, day=1) + timedelta(days=366)).strftime(
-        "%Y-%m-%d"
-    )
+    next_month = current_time.month % 12 + 1
+    next_year_value = current_time.year + (current_time.month // 12)
+    try:
+        next_month = current_time.replace(year=next_year_value, month=next_month, day=current_day)
+    except ValueError:
+        next_month = current_time.replace(year=next_year_value, month=next_month, day=1) + timedelta(days=current_day - 1)
+    next_month = next_month.strftime("%Y-%m-%d")
+
+    month_after_next = current_time.month % 12 + 2
+    try:
+        month_after_next = current_time.replace(year=next_year_value, month=month_after_next, day=current_day)
+    except ValueError:
+        month_after_next = current_time.replace(year=next_year_value, month=month_after_next, day=1) + timedelta(days=current_day - 1)
+    month_after_next = month_after_next.strftime("%Y-%m-%d")
+
+    next_year = current_time.replace(year=current_time.year + 1)
+    next_year = next_year.strftime("%Y-%m-%d")
     yesterday = (current_time - timedelta(days=1)).strftime("%Y-%m-%d")
     day_before_yesterday = (current_time - timedelta(days=2)).strftime("%Y-%m-%d")
     three_days_ago = (current_time - timedelta(days=3)).strftime("%Y-%m-%d")
