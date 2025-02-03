@@ -1,0 +1,6 @@
+*.pdf
+.python-version
+venv/*
+task.md
+bk.py
+sample.json
