@@ -229,7 +229,7 @@ def process_number_of_guests(event):
                     intent_name,
                     slots,
                     "RoomType",
-                    f" {number_of_guests} 名様の利用者人数を受けたまりました。続きまして部屋タイプを教えてください",
+                    f" {number_of_guests} 名様の利用者人数を受けたまりました。続きまして部屋タイプをシングル、ダブル、エコノミーダブルから選んでください",
                 )
                 return response
             else:
