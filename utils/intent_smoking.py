@@ -13,7 +13,7 @@ client = OpenAI(
 )
 
 
-def generate_room_type(user_input_text):
+def generate_smoking(user_input_text):
     system_content = """
         日本語で応答してください。systemはホテルの予約受付担当です。userは予約に関して部屋タイプの問い合わせをしてきます。ご用意できる部屋タイプは以下の3つです。
         シングル
@@ -142,7 +142,7 @@ def response_elicit_session(
     }
 
 
-def process_room_type(event):
+def process_smoking(event):
     session_state = event.get("sessionState", {})
     intent = session_state.get("intent", {})
     intent_name = intent.get("name", "")
@@ -154,42 +154,42 @@ def process_room_type(event):
 
     if event.get("invocationSource") == "DialogCodeHook":
         try:
-            gpt_room_type = generate_room_type(user_input_text)
-            print("gpt_room_type", gpt_room_type)
-            if gpt_room_type == "None":
-                gpt_room_type = None
-            if gpt_room_type is None:
+            gpt_smoking = generate_smoking(user_input_text)
+            print("gpt_smoking", gpt_smoking)
+            if gpt_smoking == "None":
+                gpt_smoking = None
+            if gpt_smoking is None:
                 return handle_invalid_attempts(intent_name, slots, event)
             else:
                 if slots:
-                    room_type_slot = slots.get("RoomType", {})
-                    if room_type_slot:
-                        room_type_value = room_type_slot.get("value", {})
-                        if room_type_value:
-                            lex_room_type = room_type_value.get("interpretedValue", None)
-                if lex_room_type == "None":
-                    lex_room_type = None
-                if lex_room_type is None:
+                    smoking_slot = slots.get("RoomType", {})
+                    if smoking_slot:
+                        smoking_value = smoking_slot.get("value", {})
+                        if smoking_value:
+                            lex_smoking = smoking_value.get("interpretedValue", None)
+                if lex_smoking == "None":
+                    lex_smoking = None
+                if lex_smoking is None:
                     return handle_invalid_attempts(intent_name, slots, event)
                 else:
                     return response_elicit_session(
                         intent_name,
                         slots,
                         "Smoking",
-                        f" {lex_room_type} を受けたまりました。続きまして禁煙か喫煙かの希望を教えてください",
+                        f" {lex_smoking} を受けたまりました。続きまして禁煙か喫煙かの希望を教えてください",
                     )
         except ValueError:
             return response_elicit_session(
                 intent_name,
                 slots,
-                "RoomType",
+                "Smoking",
                 "正しい部屋タイプを入力してください。例: シングル,エコノミーダブル,ダブル",
             )
     else:
         return response_elicit_session(
             intent_name,
             slots,
-            "RoomType",
+            "Smoking",
             "正しい部屋タイプを入力してください。例: シングル,エコノミーダブル,ダブル",
         )
 
