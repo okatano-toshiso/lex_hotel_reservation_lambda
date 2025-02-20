@@ -115,6 +115,7 @@ def response_elicit_session(
         type="ElicitSlot",
         invalid_attempts="0"
     ):
+    print("slot_to_elicit", slot_to_elicit)
     if slots is None:
         slots = {}
     return {
@@ -175,7 +176,7 @@ def process_room_type(event):
                     return response_elicit_session(
                         intent_name,
                         slots,
-                        "Smoking",
+                        "SmokingPreference",
                         f" {lex_room_type} を受けたまりました。続きまして禁煙か喫煙かの希望を教えてください",
                     )
         except ValueError:
