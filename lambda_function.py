@@ -5,6 +5,7 @@ from utils.intent_checkout_date import process_check_out_date
 from utils.intent_number_of_guests import process_number_of_guests
 from utils.intent_room_type import process_room_type
 from utils.intent_smoking_preference import process_smoking_preference
+from utils.intent_user_name import process_user_name
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -38,6 +39,10 @@ def lambda_handler(event, context):
         return result
 
     if invocation_label == "SmokingPreferenceSlot":
+        result = process_smoking_preference(event)
+        return result
+
+    if invocation_label == "UserNameSlot":
         result = process_smoking_preference(event)
         return result
 
