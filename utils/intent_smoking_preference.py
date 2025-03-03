@@ -172,7 +172,7 @@ def process_smoking_preference(event):
                     return response_elicit_session(
                         intent_name,
                         slots,
-                        "SmokingPreference",
+                        "UserName",
                         f" {gpt_smoking} を受けたまりました。予約に関する情報の取得は以上です。続きまして代表者様のお名前を教えてくてください。",
                     )
         except ValueError:
