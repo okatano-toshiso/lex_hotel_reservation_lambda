@@ -7,6 +7,7 @@ from utils.intent_room_type import process_room_type
 from utils.intent_smoking_preference import process_smoking_preference
 from utils.intent_user_name import process_user_name
 from utils.intent_phone_number import process_phone_number
+from utils.hotel_booking_confirm import hotel_booking_confirm
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -46,19 +47,28 @@ def lambda_handler(event, context):
     elif invocation_label == "PhoneNumberSlot":
         result = process_phone_number(event)
 
-        # 🔥 Lex の intent 情報を正しく取得してスロット情報をログに出力
-        intent = event.get("sessionState", {}).get("intent", {})
-        slots = intent.get("slots", {})
+    elif invocation_label == "HotelBooking_Confirm":
+        result = hotel_booking_confirm(event)
 
-        logger.info(f"修正後の slots: {json.dumps(slots, indent=2, ensure_ascii=False)}")
+        print(result)
+
+    intent = event.get("sessionState", {}).get("intent", {})
+    slots = intent.get("slots", {})
+
+    logger.info(f"修正後の slots: {json.dumps(slots, indent=2, ensure_ascii=False)}")
 
     if result:
         logger.info(f"Lambda の戻り値: {json.dumps(result, indent=2, ensure_ascii=False)}")
         return result
 
-    # invocationLabel が一致しない場合のエラーハンドリング
+    # 変更箇所: intent_data が空の場合に default の intent 情報を設定
+    intent_data = event.get("sessionState", {}).get("intent", {})
+    if not intent_data or not intent_data.get("name"):
+        intent_data = {"name": "UnknownIntent", "state": "Failed"}
+
     error_response = {
         "sessionState": {
+            "intent": intent_data,
             "dialogAction": {
                 "type": "Close",
                 "fulfillmentState": "Failed",

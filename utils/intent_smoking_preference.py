@@ -86,7 +86,6 @@ def handle_invalid_attempts(intent_name, slots, event):
             intent_name,
             slots,
             "SmokingPreference",
-            "無効な入力が続いたため、予約の受付を終了します。",
             "Fulfilled",
             "Close",
             invalid_attempts
@@ -95,7 +94,6 @@ def handle_invalid_attempts(intent_name, slots, event):
         intent_name,
         slots,
         "SmokingPreference",
-        "入力された値が無効です。喫煙か禁煙かのご希望を入力してください。",
         "InProgress",
         "ElicitSlot",
         invalid_attempts
@@ -106,9 +104,8 @@ def response_elicit_session(
         intent_name,
         slots=None,
         slot_to_elicit=None,
-        message=None,
         state="InProgress",
-        type="ElicitSlot",
+        type="Delegate",
         invalid_attempts="0"
     ):
     if slots is None:
@@ -128,13 +125,7 @@ def response_elicit_session(
                 "slots": slots,
                 "state": state,
             },
-        },
-        "messages": [
-            {
-                "contentType": "PlainText",
-                "content": message,
-            }
-        ],
+        }
     }
 
 
@@ -172,21 +163,18 @@ def process_smoking_preference(event):
                     return response_elicit_session(
                         intent_name,
                         slots,
-                        "UserName",
-                        f" {gpt_smoking} を受けたまりました。予約に関する情報の取得は以上です。続きまして代表者様のお名前を教えてくてください。",
+                        "UserName"
                     )
         except ValueError:
             return response_elicit_session(
                 intent_name,
                 slots,
-                "SmokingPreference",
-                "喫煙か禁煙かのご希望を入力してください。",
+                "SmokingPreference"
             )
     else:
         return response_elicit_session(
             intent_name,
             slots,
-            "SmokingPreference",
-            "喫煙か禁煙かのご希望を入力してください。",
+            "SmokingPreference"
         )
 

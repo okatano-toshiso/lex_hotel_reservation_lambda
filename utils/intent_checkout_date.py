@@ -162,9 +162,8 @@ def response_elicit_session(
         intent_name,
         slots=None,
         slot_to_elicit=None,
-        message=None,
         state="InProgress",
-        type="ElicitSlot",
+        type="Delegate",
         invalid_attempts="0"
     ):
     if slots is None:
@@ -184,13 +183,7 @@ def response_elicit_session(
                 "slots": slots,
                 "state": state,
             },
-        },
-        "messages": [
-            {
-                "contentType": "PlainText",
-                "content": message,
-            }
-        ],
+        }
     }
 
 
@@ -231,8 +224,7 @@ def process_check_out_date(event):
                         return response_elicit_session(
                             intent_name,
                             slots,
-                            "CheckOutDate",
-                            "チェックアウト日はチェックイン日より後の日付を指定してください。",
+                            "CheckOutDate"
                         )
                     else:
                         check_out_date = relative_date
@@ -240,8 +232,7 @@ def process_check_out_date(event):
                     return response_elicit_session(
                         intent_name,
                         slots,
-                        "CheckOutDate",
-                        "有効なチェックアウト日を入力してください。",
+                        "CheckOutDate"
                     )
             elif relative_date is None:
                 check_out_date = parse_special_event(user_input_text)
@@ -255,15 +246,13 @@ def process_check_out_date(event):
                             return response_elicit_session(
                                 intent_name,
                                 slots,
-                                "CheckOutDate",
-                                "チェックアウト日はチェックイン日より後の日付を指定してください。",
+                                "CheckOutDate"
                             )
                     except ValueError:
                         return response_elicit_session(
                             intent_name,
                             slots,
-                            "CheckOutDate",
-                            "Please provide a valid check-out date.",
+                            "CheckOutDate"
                         )
                 elif check_out_date is None:
                     session_attributes = event.get("sessionState", {}).get(
@@ -278,7 +267,6 @@ def process_check_out_date(event):
                             intent_name,
                             slots,
                             "CheckOutDate",
-                            "無効な入力が続いたため、予約の受付を終了します。",
                             "Fulfilled",
                             "Close",
                             invalid_attempts
@@ -288,7 +276,6 @@ def process_check_out_date(event):
                             intent_name,
                             slots,
                             "CheckOutDate",
-                            "入力された値が無効です。正しい日付を入力してください。例: 2025年12月25日など",
                             "InProgress",
                             "ElicitSlot",
                             invalid_attempts
@@ -299,8 +286,7 @@ def process_check_out_date(event):
                 return response_elicit_session(
                     intent_name,
                     slots,
-                    "CheckOutDate",
-                    "入力された値が無効です。正しい日付を入力してください。例: 2024-12-25",
+                    "CheckOutDate"
                 )
         print("check_out_date_fixed", check_out_date)
 
@@ -310,8 +296,7 @@ def process_check_out_date(event):
         response = response_elicit_session(
             intent_name,
             slots,
-            "NumberOfGuests",
-            f"チェックアウト日 {check_out_date_value} を受けたまりました。続きまして、利用者人数を教えてください",
+            "NumberOfGuests"
         )
         return response
     else:
@@ -319,7 +304,6 @@ def process_check_out_date(event):
             intent_name,
             slots,
             "CheckOutDate",
-            "予期せぬエラーが発生しました。予約の受付を終了します。",
             "Close",
-            "Fulfilled",
+            "Fulfilled"
         )

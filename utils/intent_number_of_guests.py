@@ -127,9 +127,8 @@ def response_elicit_session(
         intent_name,
         slots=None,
         slot_to_elicit=None,
-        message=None,
         state="InProgress",
-        type="ElicitSlot",
+        type="Delegate",
         invalid_attempts="0"
     ):
     if slots is None:
@@ -149,13 +148,7 @@ def response_elicit_session(
                 "slots": slots,
                 "state": state,
             },
-        },
-        "messages": [
-            {
-                "contentType": "PlainText",
-                "content": message,
-            }
-        ],
+        }
     }
 
 
@@ -201,7 +194,6 @@ def process_number_of_guests(event):
                             intent_name,
                             slots,
                             "NumberOfGuests",
-                            "無効な入力が続いたため、予約の受付を終了します。",
                             "Fulfilled",
                             "Close",
                             invalid_attempts
@@ -211,7 +203,6 @@ def process_number_of_guests(event):
                             intent_name,
                             slots,
                             "NumberOfGuests",
-                            "入力された値が無効です。正しい利用者人数を入力してください。例: 1,一人,2,二人",
                             "InProgress",
                             "ElicitSlot",
                             invalid_attempts
@@ -220,8 +211,7 @@ def process_number_of_guests(event):
                 return response_elicit_session(
                     intent_name,
                     slots,
-                    "NumberOfGuests",
-                    "有効な人数を入力してください",
+                    "NumberOfGuests"
                 )
             number_of_guests = int(number_of_guests)
             if number_of_guests and isinstance(number_of_guests, int) and number_of_guests <= 9:
@@ -229,22 +219,19 @@ def process_number_of_guests(event):
                     intent_name,
                     slots,
                     "RoomType",
-                    f" {number_of_guests} 名様の利用者人数を受けたまりました。続きまして部屋タイプをシングル、ダブル、エコノミーダブルから選んでください",
                 )
                 return response
             else:
                 return response_elicit_session(
                     intent_name,
                     slots,
-                    "NumberOfGuests",
-                    "有効な人数を入力してください",
+                    "NumberOfGuests"
                 )
         else:
             print("number_of_guestsがNoneかint型")
             return response_elicit_session(
                 intent_name,
                 slots,
-                "NumberOfGuests",
-                "利用者人数を入力してください",
+                "NumberOfGuests"
             )
 

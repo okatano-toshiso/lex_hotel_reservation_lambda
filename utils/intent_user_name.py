@@ -206,7 +206,6 @@ def handle_invalid_attempts(intent_name, slots, event):
             intent_name,
             slots,
             "UserName",
-            "無効な入力が続いたため、予約の受付を終了します。",
             "Fulfilled",
             "Close",
             invalid_attempts
@@ -215,7 +214,6 @@ def handle_invalid_attempts(intent_name, slots, event):
         intent_name,
         slots,
         "UserName",
-        "入力された値が無効です。代表のお名前をフルネームで入力してください。",
         "InProgress",
         "ElicitSlot",
         invalid_attempts
@@ -251,9 +249,8 @@ def response_elicit_session(
         intent_name,
         slots=None,
         slot_to_elicit=None,
-        message=None,
         state="InProgress",
-        type="ElicitSlot",
+        type="Delegate",
         invalid_attempts="0"
     ):
     if slots is None:
@@ -273,13 +270,7 @@ def response_elicit_session(
                 "slots": slots,
                 "state": state,
             },
-        },
-        "messages": [
-            {
-                "contentType": "PlainText",
-                "content": message,
-            }
-        ],
+        }
     }
 
 
@@ -331,21 +322,18 @@ def process_user_name(event):
                     return response_elicit_session(
                         intent_name,
                         slots,
-                        "UserName",
-                        f"代表者様のお名前 {gpt_user_name} を受けたまりました。続きまして、当日に連絡可能な電話番号を教えてくてください。",
+                        "UserName"
                     )
         except ValueError:
             return response_elicit_session(
                 intent_name,
                 slots,
-                "UserName",
-                "代表者のお名前をフルネームで入力してください。",
+                "UserName"
             )
     else:
         return response_elicit_session(
             intent_name,
             slots,
-            "UserName",
-            "代表者のお名前をフルネームで入力してください。",
+            "UserName"
         )
 

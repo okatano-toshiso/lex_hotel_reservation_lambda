@@ -186,13 +186,36 @@ def response_elicit_session(
                 "slots": slots,
                 "state": state,
             },
-        },
-        "messages": [
-            {
-                "contentType": "PlainText",
-                "content": message,
+        }
+    }
+
+
+def confirm_intent_session(
+        intent_name,
+        slots=None,
+        slot_to_elicit=None,
+        message=None,
+        state="InProgress",
+       type="Delegate",
+        invalid_attempts="0"
+    ):
+    if slots is None:
+        slots = {}
+    return {
+        "sessionState": {
+            "sessionAttributes": {
+                "invalidAttempts": str(invalid_attempts)
+            },
+            "dialogAction": {
+                "type": "ConfirmIntent"  # インテントの確認に移行
+            },
+            "intent": {
+                "confirmationState": "None",  # 確認待ちの状態
+                "name": intent_name,
+                "slots": slots,
+                "state": state  # スロット入力が完了した状態
             }
-        ],
+        }
     }
 
 
@@ -235,19 +258,17 @@ def process_phone_number(event):
                                 "interpretedValue": gpt_phone_number
                             }
                         }
-                        return response_elicit_session(
+                        return confirm_intent_session(
                             intent_name,
                             slots,
                             "PhoneNumber",
-                            f"当日連絡可能の電話番号 {gpt_phone_number} を受けたまりました。続きまして、予約の確認をいたします。",
                         )
                     return handle_invalid_attempts(intent_name, slots, event)
                 else:
-                    return response_elicit_session(
+                    return confirm_intent_session(
                         intent_name,
                         slots,
                         "PhoneNumber",
-                        f"当日連絡可能の電話番号 {lex_phone_number} を受けたまりました。続きまして、予約の確認をいたします。",
                     )
         except ValueError:
             return response_elicit_session(

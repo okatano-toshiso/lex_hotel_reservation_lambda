@@ -90,7 +90,6 @@ def handle_invalid_attempts(intent_name, slots, event):
             intent_name,
             slots,
             "RoomType",
-            "無効な入力が続いたため、予約の受付を終了します。",
             "Fulfilled",
             "Close",
             invalid_attempts
@@ -99,7 +98,6 @@ def handle_invalid_attempts(intent_name, slots, event):
         intent_name,
         slots,
         "RoomType",
-        "入力された値が無効です。有効な部屋タイプを入力してください。例: シングル,エコノミーダブル,ダブル",
         "InProgress",
         "ElicitSlot",
         invalid_attempts
@@ -110,9 +108,8 @@ def response_elicit_session(
         intent_name,
         slots=None,
         slot_to_elicit=None,
-        message=None,
         state="InProgress",
-        type="ElicitSlot",
+        type="Delegate",
         invalid_attempts="0"
     ):
     print("slot_to_elicit", slot_to_elicit)
@@ -133,13 +130,7 @@ def response_elicit_session(
                 "slots": slots,
                 "state": state,
             },
-        },
-        "messages": [
-            {
-                "contentType": "PlainText",
-                "content": message,
-            }
-        ],
+        }
     }
 
 
@@ -177,20 +168,17 @@ def process_room_type(event):
                         intent_name,
                         slots,
                         "SmokingPreference",
-                        f" {lex_room_type} を受けたまりました。続きまして禁煙か喫煙かの希望を教えてください",
                     )
         except ValueError:
             return response_elicit_session(
                 intent_name,
                 slots,
-                "RoomType",
-                "正しい部屋タイプを入力してください。例: シングル,エコノミーダブル,ダブル",
+                "RoomType"
             )
     else:
         return response_elicit_session(
             intent_name,
             slots,
-            "RoomType",
-            "正しい部屋タイプを入力してください。例: シングル,エコノミーダブル,ダブル",
+            "RoomType"
         )
 

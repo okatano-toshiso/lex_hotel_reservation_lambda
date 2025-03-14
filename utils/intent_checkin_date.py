@@ -164,9 +164,8 @@ def response_elicit_session(
         intent_name,
         slots=None,
         slot_to_elicit=None,
-        message=None,
         state="InProgress",
-        type="ElicitSlot",
+        type="Delegate",
         invalid_attempts="0"
     ):
     if slots is None:
@@ -186,13 +185,7 @@ def response_elicit_session(
                 "slots": slots,
                 "state": state,
             },
-        },
-        "messages": [
-            {
-                "contentType": "PlainText",
-                "content": message,
-            }
-        ],
+        }
     }
 
 
@@ -235,8 +228,7 @@ def process_check_in_date(event):
                         return response_elicit_session(
                             intent_name,
                             slots,
-                            "CheckInDate",
-                            "チェックイン日は過去の日付を選択することはできません。有効な日付を入力してください。",
+                            "CheckInDate"
                         )
                     else:
                         check_in_date = relative_date
@@ -244,8 +236,7 @@ def process_check_in_date(event):
                     return response_elicit_session(
                         intent_name,
                         slots,
-                        "CheckInDate",
-                        "有効なチェックイン日を入力してください。",
+                        "CheckInDate"
                     )
             elif relative_date is None:
                 check_in_date = parse_special_event(user_input_text)
@@ -257,8 +248,7 @@ def process_check_in_date(event):
                         return response_elicit_session(
                             intent_name,
                             slots,
-                            "CheckInDate",
-                            "有効なチェックイン日を入力してください。",
+                            "CheckInDate"
                         )
                 elif check_in_date is None:
                     session_attributes = event.get("sessionState", {}).get(
@@ -273,7 +263,6 @@ def process_check_in_date(event):
                             intent_name,
                             slots,
                             "CheckInDate",
-                            "無効な入力が続いたため、予約の受付を終了します。",
                             "Fulfilled",
                             "Close",
                             invalid_attempts
@@ -283,7 +272,6 @@ def process_check_in_date(event):
                             intent_name,
                             slots,
                             "CheckInDate",
-                            "入力された値が無効です。正しい日付を入力してください。例: 2025年12月25日など",
                             "InProgress",
                             "ElicitSlot",
                             invalid_attempts
@@ -295,7 +283,6 @@ def process_check_in_date(event):
                     intent_name,
                     slots,
                     "CheckInDate",
-                    "入力された値が無効です。正しい日付を入力してください。例: 2025年12月25日など",
                 )
         print("check_in_date_fixed", check_in_date)
 
@@ -306,8 +293,7 @@ def process_check_in_date(event):
         response = response_elicit_session(
             intent_name,
             slots,
-            "CheckOutDate",
-            f"チェックイン日 {check_in_date_value} を受けたまりました。続きましてチェックアウト日を教えてください",
+            "CheckOutDate"
         )
         return response
     else:
@@ -315,7 +301,6 @@ def process_check_in_date(event):
             intent_name,
             slots,
             "CheckInDate",
-            "予期せぬエラーが発生しました。予約の受付を終了します。",
             "Close",
             "Fulfilled",
         )
